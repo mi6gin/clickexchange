@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<section class="hero">
+  <h1>Кликай. Вкладывай. Богатей.</h1>
+  <p>Майни монеты кликами и вкладывай их в апгрейды. Биржа — уже скоро.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{% url 'register' %}">Начать играть</a>
+    <a class="btn btn-ghost" href="{% url 'login' %}">У меня есть аккаунт</a>
+  </div>
+</section>
+{% endblock %}

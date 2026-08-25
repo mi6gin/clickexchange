@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Игра — ClickExchange{% endblock %}
+
+{% block content %}
+<section class="game">
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">Монеты</span>
+      <span id="coins" class="stat-value">🪙 {{ profile.coins }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Кликов сделано</span>
+      <span id="total-clicks" class="stat-value">{{ profile.total_clicks }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">За клик</span>
+      <span id="click-power" class="stat-value">{{ stats.click_power }}</span>
+    </div>
+  </div>
+
+  <div class="energy-wrap">
+    <span>⚡ Энергия</span>
+    <div class="energy-bar">
+      <div id="energy-fill" class="energy-fill" style="width: {% widthratio profile.effective_energy stats.max_energy 100 %}%"></div>
+    </div>
+    <span id="energy-text">{{ profile.effective_energy }}/{{ stats.max_energy }}</span>
+  </div>
+
+  <button id="click-btn" class="coin-btn" type="button">
+    <span class="coin-face">🪙</span>
+  </button>
+
+  <h2>Апгрейды</h2>
+  <div class="upgrades-grid">
+    {% for upgrade in upgrades %}
+      <article class="upgrade-card" data-kind="{{ upgrade.kind }}">
+        <h3>{{ upgrade.name }}</h3>
+        <p class="upgrade-level">Уровень: <span data-level>{{ upgrade.level }}</span>/10</p>
+        {% if upgrade.maxed %}
+          <button class="btn btn-ghost" disabled>Максимум</button>
+        {% else %}
+          <form method="post" action="{% url 'api-buy' upgrade.id %}" class="buy-form" data-upgrade-id="{{ upgrade.id }}">
+            <button type="submit" class="btn btn-primary" data-cost="{{ upgrade.cost }}">
+              Купить · 🪙 {{ upgrade.cost }}
+            </button>
+          </form>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<template id="float-template"><span class="float-gain"></span></template>
+<div id="toast" class="toast hidden"></div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>window.GAME_URLS = {
+    click: "{% url 'api-click' %}",
+    state: "{% url 'api-state' %}",
+  };</script>
+  <script src="{% static 'js/game.js' %}" defer></script>
+{% endblock %}

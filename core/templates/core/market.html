@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Биржа — ClickExchange{% endblock %}
+
+{% block content %}
+<section class="market">
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">Монеты</span>
+      <span id="coins" class="stat-value">🪙 {{ profile.coins }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">В бумагах</span>
+      <span id="invested" class="stat-value">{{ portfolio.invested_value }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Нереализованный P&L</span>
+      <span id="unrealized-pnl" class="stat-value {{ portfolio.unrealized_pnl|yesno:'pos,neg,pos' }}">
+        {{ portfolio.unrealized_pnl }}
+      </span>
+    </div>
+  </div>
+
+  {% if ipo %}
+    <div class="ipo-banner">📢 IPO: на биржу вышел <b>{{ ipo.ticker }}</b> — «{{ ipo.name }}» по {{ ipo.price }}</div>
+  {% endif %}
+
+  {% for asset in assets %}
+    <article class="asset-card" data-asset-id="{{ asset.id }}">
+      <header class="asset-head">
+        <h2>{{ asset.ticker }} <small>{{ asset.name }}</small></h2>
+        <div class="asset-price">
+          <span id="price-{{ asset.id }}" class="price">{{ asset.price }}</span>
+          <span id="change-{{ asset.id }}" class="change {{ asset.change_pct|yesno:'pos,neg,pos' }}">
+            {{ asset.change_pct }}%
+          </span>
+        </div>
+      </header>
+
+      <canvas id="chart-{{ asset.id }}" width="840" height="240"></canvas>
+
+      <div class="trade-forms-row">
+        <form class="trade-form" data-side="buy">
+          <input type="number" min="1" value="10" data-qty aria-label="Количество">
+          <button type="submit" class="btn btn-primary">Купить</button>
+        </form>
+        <form class="trade-form" data-side="sell">
+          <input type="number" min="1" value="10" data-qty aria-label="Количество">
+          <button type="submit" class="btn btn-sell">Продать</button>
+        </form>
+      </div>
+    </article>
+  {% endfor %}
+
+  <h2>Портфель</h2>
+  <table class="portfolio-table" id="portfolio-table">
+    <thead>
+      <tr>
+        <th>Тикер</th><th>Кол-во</th><th>Ср. цена</th>
+        <th>Текущая</th><th>Стоимость</th><th>P&L</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in portfolio.holdings %}
+        <tr>
+          <td>{{ h.ticker }}</td><td>{{ h.quantity }}</td>
+          <td>{{ h.avg_price }}</td><td>{{ h.current_price }}</td>
+          <td>{{ h.value }}</td>
+          <td class="{{ h.unrealized_pnl|yesno:'pos,neg,pos' }}">{{ h.unrealized_pnl }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="empty-row">Пока пусто — купи что-нибудь!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if trades %}
+    <h2>Последние сделки</h2>
+    <table class="portfolio-table">
+      <thead>
+        <tr><th>Время</th><th>Сторона</th><th>Тикер</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr>
+      </thead>
+      <tbody>
+        {% for t in trades %}
+          <tr>
+            <td>{{ t.created_at|date:'d.m H:i' }}</td>
+            <td class="{{ t.side|yesno:'pos,neg' }}">{{ t.get_side_display }}</td>
+            <td>{{ t.asset.ticker }}</td><td>{{ t.quantity }}</td>
+            <td>{{ t.price|floatformat:2 }}</td><td>{{ t.total|floatformat:0 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
+
+<div id="toast" class="toast hidden"></div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.MARKET = {
+      assets: [{% for a in assets %}{{ a.id }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+      urls: {
+        asset: "{% url 'api-asset' 1 %}".replace(/\/1\/$/, '/'),
+        portfolio: "{% url 'api-portfolio' %}",
+        trade: "{% url 'api-trade' 1 'buy' %}".replace(/\/1\/buy\/$/, '/'),
+      },
+    };
+    window.GAME_URLS = { state: "{% url 'api-state' %}" };
+  </script>
+  <script src="{% static 'js/market.js' %}" defer></script>
+{% endblock %}
