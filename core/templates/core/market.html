@@ -53,6 +53,18 @@
     </article>
   {% endfor %}
 
+  {% if events %}
+    <h2>📣 События рынка</h2>
+    <ul class="events-feed">
+      {% for event in events %}
+        <li class="{{ event.is_good|yesno:'pos,neg' }}">
+          {{ event.message }}
+          <small>{{ event.created_at|date:'d.m H:i' }} · ×{{ event.multiplier }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   <h2>Портфель</h2>
   <table class="portfolio-table" id="portfolio-table">
     <thead>

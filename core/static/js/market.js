@@ -229,6 +229,11 @@
       } catch (e) {
         return;
       }
+
+      if (payload.event) {
+        const e = payload.event;
+        showToast(e.message + (e.multiplier ? ` (×${e.multiplier})` : ''), !e.is_good);
+      }
       for (const a of payload.assets || []) {
         const $price = document.getElementById('price-' + a.id);
         const $change = document.getElementById('change-' + a.id);

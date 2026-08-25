@@ -302,3 +302,41 @@ h2 { margin-bottom: 16px; font-size: 22px; }
 }
 .portfolio-table tr:last-child td { border-bottom: none; }
 .empty-row { text-align: center; color: var(--muted); }
+
+/* ---------- События ---------- */
+.events-feed { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.events-feed li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.events-feed li small { display: block; color: var(--muted); margin-top: 3px; }
+
+/* ---------- Лидерборд ---------- */
+.leaderboard .me-row { background: rgba(245, 184, 61, 0.08); }
+.you-tag { color: var(--accent); font-size: 12px; }
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.achievement-card {
+  background: var(--surface);
+  border: 1px solid var(--green);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.achievement-icon { font-size: 30px; }
+.achievement-card p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.achievement-card.locked {
+  border-color: var(--border);
+  filter: grayscale(1);
+  opacity: 0.5;
+}

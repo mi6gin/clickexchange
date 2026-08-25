@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Топ трейдеров — ClickExchange{% endblock %}
+
+{% block content %}
+<section class="market">
+  <h2>🏆 Топ по капиталу</h2>
+  <table class="portfolio-table leaderboard">
+    <thead>
+      <tr><th>#</th><th>Игрок</th><th>Капитал</th><th>Монеты</th><th>Кликов</th><th>Ачивки</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr {% if row.is_me %}class="me-row"{% endif %}>
+          <td>
+            {% if row.rank == 1 %}🥇{% elif row.rank == 2 %}🥈{% elif row.rank == 3 %}🥉{% else %}{{ row.rank }}{% endif %}
+          </td>
+          <td>{{ row.username }}{% if row.is_me %} <span class="you-tag">(ты)</span>{% endif %}</td>
+          <td class="pos">🪙 {{ row.net_worth|floatformat:0 }}</td>
+          <td>{{ row.coins|floatformat:0 }}</td>
+          <td>{{ row.total_clicks|floatformat:0 }}</td>
+          <td>
+            {% for a in row.achievements %}<span title="{{ a.name }}">{{ a.icon }}</span>{% endfor %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="empty-row">Пока никого нет</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Мои достижения</h2>
+  <div class="achievements-grid">
+    {% for achievement in all_achievements %}
+      <article class="achievement-card {% if achievement.id not in earned_ids %}locked{% endif %}">
+        <span class="achievement-icon">{{ achievement.icon }}</span>
+        <div>
+          <b>{{ achievement.name }}</b>
+          <p>{{ achievement.description }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

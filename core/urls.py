@@ -14,6 +14,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('game/', views.game, name='game'),
     path('market/', views.market, name='market'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('api/click/', views.api_click, name='api-click'),
     path('api/buy/<int:upgrade_id>/', views.api_buy, name='api-buy'),
     path('api/state/', views.api_state, name='api-state'),

@@ -15,4 +15,9 @@ class MarketConsumer(JsonWebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(MARKET_GROUP, self.channel_name)
 
     def price_update(self, event):
+        """Тик котировок (celery)."""
+        self.send_json(event['data'])
+
+    def market_event(self, event):
+        """Рыночное событие: крах/хайп/памп/дамп."""
         self.send_json(event['data'])

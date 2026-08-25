@@ -11,10 +11,9 @@ from django.utils import timezone
 from config.asgi import application
 from core import market
 from core.models import Asset
-from core.tasks import advance_all_assets
 
 
-class AdvanceAllAssetsTest(TestCase):
+class AllQuotesTest(TestCase):
     def setUp(self):
         # Изолируемся от сидовых активов миграций
         Asset.objects.all().delete()
@@ -37,7 +36,7 @@ class AdvanceAllAssetsTest(TestCase):
         self._backdate(first, market.TICK_INTERVAL * 3)
         self._backdate(second, market.TICK_INTERVAL * 3)
 
-        quotes = advance_all_assets()
+        quotes = market.all_quotes()
 
         self.assertEqual(len(quotes), 2)
         by_ticker = {q['ticker']: q for q in quotes}
@@ -64,6 +63,29 @@ class MarketConsumerTest(IsolatedAsyncioTestCase):
             await layer.group_send(
                 'market',
                 {'type': 'price.update', 'data': payload},
+            )
+
+            response = await communicator.receive_json_from(timeout=2)
+            self.assertEqual(response, payload)
+
+            await communicator.disconnect()
+
+    async def test_market_event_broadcast_reaches_client(self):
+        layer = InMemoryChannelLayer()
+        with mock.patch.object(channel_layers, 'backends', {'default': layer}):
+            communicator = WebsocketCommunicator(application, '/ws/market/')
+            connected, _ = await communicator.connect()
+            self.assertTrue(connected)
+
+            payload = {
+                'event': {'kind': 'hype', 'message': '🚀 Тест', 'multiplier': 2.5,
+                          'is_good': True},
+                'assets': [{'id': 1, 'ticker': 'TST', 'name': 'Тест',
+                            'price': 2.0, 'change_pct': 100.0}],
+            }
+            await layer.group_send(
+                'market',
+                {'type': 'market.event', 'data': payload},
             )
 
             response = await communicator.receive_json_from(timeout=2)

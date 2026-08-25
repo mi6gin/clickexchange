@@ -7,10 +7,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core import broker, services
-from core import generator
+from core import achievements, broker, generator, services
 from core import market as market_engine
-from core.models import Asset, Profile, Transaction, Upgrade
+from core.models import Asset, Achievement, MarketEvent, Profile, Transaction, Upgrade, UserAchievement
 
 
 def home(request):
@@ -114,8 +113,45 @@ def market(request):
         'ipo': ipo,
         'portfolio': broker.portfolio_summary(profile),
         'trades': profile.trades.select_related('asset')[:10],
+        'events': MarketEvent.objects.select_related('asset')[:8],
     }
     return render(request, 'core/market.html', context)
+
+
+@login_required
+def leaderboard(request):
+    profile = _profile(request)
+    services.sync_profile(profile)
+
+    rows = []
+    for p in Profile.objects.select_related('user').prefetch_related('portfolio__asset'):
+        rows.append({
+            'username': p.user.username,
+            'is_me': p.user_id == request.user.id,
+            'coins': p.coins,
+            'net_worth': round(achievements.net_worth(p), 2),
+            'total_clicks': p.total_clicks,
+            'achievements': [
+                ua.achievement for ua in p.achievements.select_related('achievement')
+            ],
+        })
+    rows.sort(key=lambda r: r['net_worth'], reverse=True)
+    for i, row in enumerate(rows, start=1):
+        row['rank'] = i
+
+    my_achievements = (
+        UserAchievement.objects.filter(profile=profile)
+        .select_related('achievement')
+        .order_by('-awarded_at')
+    )
+    context = {
+        'profile': profile,
+        'rows': rows[:20],
+        'my_achievements': my_achievements,
+        'earned_ids': list(my_achievements.values_list('achievement_id', flat=True)),
+        'all_achievements': Achievement.objects.all().order_by('id'),
+    }
+    return render(request, 'core/leaderboard.html', context)
 
 
 @login_required

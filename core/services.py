@@ -3,6 +3,7 @@ import random
 
 from django.utils import timezone
 
+from core import achievements
 from core.models import Profile, Upgrade, UserUpgrade
 
 ENERGY_REGEN_PER_SECOND = 0.5
@@ -88,6 +89,7 @@ def do_click(profile: Profile) -> dict:
         'coins': profile.coins,
         'energy': profile.effective_energy(),
         'total_clicks': profile.total_clicks,
+        'achievements': achievements.check_after_click(profile),
     }
 
 

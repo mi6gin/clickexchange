@@ -4,6 +4,7 @@ import math
 
 from django.db import transaction
 
+from core import achievements
 from core.market import advance_market
 from core.models import Asset, Holding, Profile, Transaction
 
@@ -54,6 +55,7 @@ def buy(profile: Profile, asset: Asset, quantity: int) -> dict:
         'price': round(price, 4),
         'spent': cost,
         'coins': profile.coins,
+        'achievements': achievements.check_after_trade(profile),
     }
 
 
@@ -106,6 +108,7 @@ def sell(profile: Profile, asset: Asset, quantity: int) -> dict:
         'earned': proceeds,
         'realized_pnl': round(realized_pnl, 2),
         'coins': profile.coins,
+        'achievements': achievements.check_after_trade(profile, realized_pnl),
     }
 
 

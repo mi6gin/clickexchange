@@ -95,6 +95,21 @@ def get_candles(asset: Asset, count: int = 60) -> list[dict]:
     return candles
 
 
+def all_quotes() -> list[dict]:
+    """Лёгкие котировки всех активов (для WS-рассылки)."""
+    quotes = []
+    for asset in Asset.objects.all().order_by('ticker'):
+        state = market_state(asset)
+        quotes.append({
+            'id': state['id'],
+            'ticker': state['ticker'],
+            'name': state['name'],
+            'price': state['price'],
+            'change_pct': state['change_pct'],
+        })
+    return quotes
+
+
 def market_state(asset: Asset) -> dict:
     """Состояние актива для API: цена и свечи (заодно двигает рынок)."""
     asset = advance_market(asset)

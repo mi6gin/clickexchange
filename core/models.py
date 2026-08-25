@@ -192,3 +192,79 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f'{self.get_side_display()} {self.quantity} {self.asset.ticker} по {self.price}'
+
+
+class MarketEvent(models.Model):
+    class Kind(models.TextChoices):
+        CRASH = 'crash', 'Крах'
+        HYPE = 'hype', 'Хайп'
+        PUMP = 'pump', 'Памп'
+        DUMP = 'dump', 'Дамп'
+
+    kind = models.CharField(max_length=10, choices=Kind.choices, verbose_name='Тип')
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='events',
+        verbose_name='Затронутый актив (None — весь рынок)',
+    )
+    message = models.CharField(max_length=200, verbose_name='Сообщение')
+    multiplier = models.FloatField(verbose_name='Множитель цены')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Время')
+
+    class Meta:
+        verbose_name = 'Рыночное событие'
+        verbose_name_plural = 'Рыночные события'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'[{self.kind}] {self.message}'
+
+    @property
+    def is_good(self) -> bool:
+        return self.multiplier >= 1
+
+
+class Achievement(models.Model):
+    code = models.CharField(max_length=32, unique=True, verbose_name='Код')
+    name = models.CharField(max_length=64, verbose_name='Название')
+    description = models.CharField(max_length=200, verbose_name='Описание')
+    icon = models.CharField(max_length=8, default='🏆', verbose_name='Иконка')
+
+    class Meta:
+        verbose_name = 'Достижение'
+        verbose_name_plural = 'Достижения'
+
+    def __str__(self):
+        return f'{self.icon} {self.name}'
+
+
+class UserAchievement(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='achievements',
+        verbose_name='Профиль',
+    )
+    achievement = models.ForeignKey(
+        Achievement,
+        on_delete=models.CASCADE,
+        related_name='holders',
+        verbose_name='Достижение',
+    )
+    awarded_at = models.DateTimeField(auto_now_add=True, verbose_name='Когда получено')
+
+    class Meta:
+        verbose_name = 'Достижение игрока'
+        verbose_name_plural = 'Достижения игроков'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['profile', 'achievement'],
+                name='unique_profile_achievement',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.profile}: {self.achievement}'
