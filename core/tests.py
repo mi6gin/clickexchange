@@ -35,7 +35,9 @@ class ClickTest(TestCase):
         self.profile = make_user().profile
 
     def test_click_spends_energy_and_gives_coins(self):
-        result = services.do_click(self.profile)
+        # Изолируем рандом: без крита (иначе тест флакает)
+        with mock.patch.object(services.random, 'random', return_value=0.5):
+            result = services.do_click(self.profile)
 
         self.assertTrue(result['ok'])
         self.assertFalse(result['crit'])
