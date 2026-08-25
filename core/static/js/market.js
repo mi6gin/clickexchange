@@ -216,14 +216,45 @@
     });
   }
 
-  // ---------- Старт и поллинг ----------
+  // ---------- WebSocket: живые котировки ----------
+
+  function connectMarketSocket() {
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(protocol + '://' + location.host + '/ws/market/');
+
+    socket.onmessage = (event) => {
+      let payload;
+      try {
+        payload = JSON.parse(event.data);
+      } catch (e) {
+        return;
+      }
+      for (const a of payload.assets || []) {
+        const $price = document.getElementById('price-' + a.id);
+        const $change = document.getElementById('change-' + a.id);
+        if ($price) {
+          $price.textContent = a.price.toLocaleString('ru-RU', { maximumFractionDigits: 4 });
+        }
+        if ($change) {
+          $change.textContent = (a.change_pct > 0 ? '+' : '') + a.change_pct + '%';
+          $change.style.color = a.change_pct >= 0 ? COLORS.up : COLORS.down;
+        }
+      }
+    };
+
+    socket.onclose = () => setTimeout(connectMarketSocket, 3000);
+  }
+
+  function refreshCandlesPeriodically() {
+    window.MARKET.assets.forEach(refreshAsset);
+    setInterval(() => window.MARKET.assets.forEach(refreshAsset), 20000);
+  }
+
+  // ---------- Старт ----------
 
   bindTradeForms();
-  window.MARKET.assets.forEach(refreshAsset);
+  connectMarketSocket();
+  refreshCandlesPeriodically();
   refreshPortfolio();
-
-  setInterval(() => {
-    window.MARKET.assets.forEach(refreshAsset);
-    refreshPortfolio();
-  }, 10000);
+  setInterval(refreshPortfolio, 30000);
 })();

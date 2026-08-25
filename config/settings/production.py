@@ -51,6 +51,23 @@ CACHES = {
     }
 }
 
+# --- Channels: рассылка котировок по WebSocket ---
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {'hosts': [os.environ.get('CHANNEL_LAYER_URL', 'redis://redis:6379/2')]},
+    }
+}
+
+# --- Celery Beat: рынок тикает сам, без посетителей ---
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_BEAT_SCHEDULE = {
+    'advance-market': {
+        'task': 'core.tasks.advance_market_task',
+        'schedule': 5.0,
+    },
+}
+
 # --- HTTPS / HSTS / cookies ---
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

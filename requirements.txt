@@ -3,3 +3,10 @@ django-axes>=8.0
 argon2-cffi>=23.0
 gunicorn>=23.0
 psycopg[binary]>=3.2
+celery>=5.4
+# channels_redis 4.3 ждёт от redis-py старое поведение bzpopmin (None вместо TimeoutError)
+redis<5
+channels>=4.2
+channels-redis>=4.2
+daphne>=4.1
+uvicorn[standard]>=0.30
