@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Системные проверки Django
+        run: python manage.py check
+
+      - name: Миграции не отстают от моделей
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Прод-настройки загружаются и проходят deploy-check
+        env:
+          DJANGO_ENV: production
+          DJANGO_SECRET_KEY: ci-dummy-secret-key-not-used-in-real-life
+          ALLOWED_HOSTS: localhost
+          POSTGRES_PASSWORD: ci-dummy-password
+        run: python manage.py check --deploy
+
+      - name: Тесты
+        run: python manage.py test

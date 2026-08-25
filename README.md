@@ -1,6 +1,8 @@
 # ClickExchange
 
-Кликер-биржа на Django: майни монеты кликами, прокачивай апгрейды. Биржа с живыми графиками — на следующих этапах.
+[![CI](https://github.com/mi6gin/clickexchange/actions/workflows/ci.yml/badge.svg)](https://github.com/mi6gin/clickexchange/actions/workflows/ci.yml)
+
+Кликер-биржа на Django: майни монеты кликами, прокачивай апгрейды, торгуй на бирже с процедурно генерируемыми компаниями.
 
 ## Запуск в Docker (прод-конфигурация)
 
